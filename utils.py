@@ -153,7 +153,7 @@ def authentication(page='main'):
             # st.switch_page('pages/home.py')
         elif authentication_status is False:
             st.session_state.authentication_status = False
-            st.error('Имя пользователя и пароль введены неверно')
+            st.error('Имя пользователя или пароль введены неверно')
         elif authentication_status is None:
             st.session_state.authentication_status = None
             st.warning('Введите имя пользователя и пароль')
