@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "park-run-app-prod"
+version = "0.1.0"
+description = ""
+authors = ["artyom_ev"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = ">=3.11, <3.12"
+pandas = "^2.2.3"
+bs4 = "^0.0.2"
+streamlit = "1.32.0"
+requests = "^2.32.3"
+sqlalchemy = "^2.0.35"
+aiohttp = "^3.10.9"
+google-api-python-client = "^2.166.0"
+google-auth-httplib2 = "^0.2.0"
+google-auth-oauthlib = "^1.2.1"
+gspread = "^6.2.0"
+validators = "^0.34.0"
+streamlit-authenticator = "0.3.3"
+
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
