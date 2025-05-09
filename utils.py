@@ -12,6 +12,8 @@ def menu():
     st.sidebar.page_link("pages/records_table.py", label="Клубы и рекорды")
     st.sidebar.page_link("pages/almost_club.py", label="Почти в клубе")
     st.sidebar.page_link("pages/last_results.py", label="Последние результаты")
+    if ('username' in ss) and (ss.username == 'host'):
+        st.sidebar.page_link("pages/update.py", label="Обновление базы")
     st.sidebar.divider()
     
 def title(string):

@@ -20,6 +20,9 @@ st.set_page_config(page_title='Duck🌳Run', page_icon=':running:')
 
 menu()
 authenticator, name, authentication_status, username = authentication()
+if username != 'host':
+    st.switch_page('pages/home.py')
+
 
 # Путь к изображению
 image_path = 'logo.jpg'
