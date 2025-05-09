@@ -262,7 +262,8 @@ def show_search(db_url):
         if search_query:
             go_search_by_name(search_query, engine)
     except Exception as e:
-        st.write(f"Произошла ошибка: {e}")
+        # st.write(f"Произошла ошибка: {e}")
+        pass
 
 db_url='sqlite:///mydatabase.db'
 db_path = db_url.replace('sqlite:///', '')  # Извлекаем путь к файлу базы данных
