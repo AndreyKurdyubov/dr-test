@@ -144,7 +144,7 @@ def authentication(page='main'):
             authenticator.logout('Выйти', 'sidebar', key='unique_key')
         else:
             st.sidebar.write(f"Вы не вошли")
-            st.sidebar.page_link("pages/login_page.py", label="Войти", icon="↪")
+            st.sidebar.page_link("pages/login_page.py", label="**Войти**", icon="➡️")
 
     elif page == 'login_page':
         if authentication_status:
