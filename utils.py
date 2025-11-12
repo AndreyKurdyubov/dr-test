@@ -4,16 +4,16 @@ from streamlit import session_state as ss
 import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
-import time
+from datetime import datetime
+import glob, os
 
 def menu():
     st.sidebar.page_link("pages/home.py", label="Домашняя")
-    st.sidebar.page_link("pages/main_table.py", label="Таблица участников")
+    # st.sidebar.page_link("pages/main_table.py", label="Таблица участников")
     st.sidebar.page_link("pages/records_table.py", label="Клубы и рекорды")
-    st.sidebar.page_link("pages/almost_club.py", label="Почти в клубе")
+    # st.sidebar.page_link("pages/almost_club.py", label="Почти в клубе")
+    # st.sidebar.page_link("pages/hellothere.py", label="Какие люди!")
     st.sidebar.page_link("pages/last_results.py", label="Последние результаты")
-    if ('username' in ss) and (ss.username == 'host'):
-        st.sidebar.page_link("pages/update.py", label="Обновление базы")
     st.sidebar.divider()
     
 def title(string):
@@ -42,7 +42,8 @@ def tags_table():
 
     cop = workbook.sheet1.get_all_values()
     df_tag = pd.DataFrame(cop[1:], columns=cop[0])
-    return df_tag
+    df_tag = df_tag.query(f'profile_link.str.contains("userstats")')
+    return df_tag, workbook
 
 def link_to_tag(vk_link, name_5verst, name_real):
     id = str(vk_link)[15:]
@@ -164,3 +165,44 @@ def authentication(page='main'):
             st.warning('Введите имя пользователя и пароль')
 
     return authenticator, name, authentication_status, username
+
+def dataframes(engine):
+    # runners
+    querie = f'''
+    SELECT distinct profile_link, max(age_group) as age_group
+    FROM runners
+    WHERE profile_link LIKE "%userstats%"
+    GROUP BY profile_link
+    '''
+    df_run = pd.read_sql(querie, con=engine) # all runs for run <= run_number
+
+    # orgs
+    querie = f'''
+    SELECT distinct profile_link
+    FROM organizers
+    WHERE profile_link LIKE "%userstats%"
+    '''
+    df_org = pd.read_sql(querie, con=engine) # all vols for run <= run_number
+
+    # users
+    querie = f'''
+    SELECT profile_link, name, sex
+    FROM users
+    '''
+    df_users = pd.read_sql(querie, con=engine) # all vols for run <= run_number
+
+    return df_run, df_org, df_users
+
+
+def find_db_files():
+    """Находит все файлы .db в директории"""
+    db_files = glob.glob(os.path.join('*[0-9].db'))
+    return db_files
+
+
+def convert_date_string(date_string):
+    """
+    Преобразует строку формата '2025_11_05_18_14_03' в читаемый формат только с цифрами
+    """
+    dt = datetime.strptime(date_string, '%Y_%m_%d_%H_%M_%S')
+    return dt.strftime('%d.%m.%Y %H:%M:%S')

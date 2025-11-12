@@ -1,5 +1,6 @@
 import os
 import streamlit as st
+from streamlit import session_state as ss
 import requests
 from bs4 import BeautifulSoup
 from sqlalchemy import create_engine, text
@@ -9,7 +10,7 @@ import aiohttp
 import asyncio
 from aiohttp import ClientTimeout
 from asyncio import Semaphore
-from utils import menu, authentication
+from utils import menu, authentication, tags_table, dataframes
 
 #####################################################################################################################################################
 # Настройка страницы
@@ -22,7 +23,6 @@ menu()
 authenticator, name, authentication_status, username = authentication()
 if username != 'host':
     st.switch_page('pages/home.py')
-
 
 # Путь к изображению
 image_path = 'logo.jpg'
@@ -335,7 +335,7 @@ async def get_all_stats_data(df_runners, df_orgs):
                 if sex == None:
                     sex_exception = {'Михаил': 'М', 'Андрей': 'М', 'Юрий': 'М', 'Анатолий': 'М', 'Ирина': 'Ж', 'Олег': 'М', 'Антон': 'М', 'Вера': 'Ж', 'Дарья': 'Ж', 'Кирилл': 'М', 'Мария': 'Ж', 'Александр': 'М', 'Самат': 'М', 'Евгения': 'Ж', 
                     'Тимофей': 'М', 'Варвара': 'Ж', 'Татьяна': 'Ж', 'Юлия': 'Ж', 'Анна': 'Ж', 'Алексей': 'М', 'Полина': 'Ж', 'Liubov': 'Ж', 'Николай': 'М', 'Елизавета': 'Ж', 'София': 'Ж', 'Анастасия': 'Ж', 'Станислава': 'Ж', 
-                    'Маргарита': 'Ж', 'Эллина': 'Ж', 'Светлана': 'Ж', 'Ксения': 'Ж', 'Станислав': 'М', 'Иван': 'М', 'Руслан': 'М', 'Ольга': 'Ж', 'Ярослав': 'М', 'Черняев': 'М', 'Антонина': 'Ж', 'Артём': 'М'}
+                    'Маргарита': 'Ж', 'Эллина': 'Ж', 'Светлана': 'Ж', 'Ксения': 'Ж', 'Станислав': 'М', 'Иван': 'М', 'Руслан': 'М', 'Ольга': 'Ж', 'Ярослав': 'М', 'Черняев': 'М', 'Антонина': 'Ж', 'Артём': 'М', 'Виктория': 'Ж', 'Марго': 'Ж'}
                     first_name = name.split()[0]
                     sex = sex_exception.get(first_name)  # sex or None
 
@@ -462,17 +462,46 @@ with col2:
         if last_date_db != last_date_site:
             st.write(f'Данные устарели. Дата в базе: {last_date_db}, дата на сайте: [{last_date_site}]({last_results_link}).')
              
-            if (username == "host"):
-                if (st.button('Обновить данные')):
-                    st.write('Начинаем парсинг данных...')
-                    asyncio.run(update_data())
-                    st.success('Данные успешно сохранены в базу данных!')
         else:
             st.markdown(f'''Данные актуальны 👍  
                         Последняя дата в базе данных: {last_date_db}  
                         Последняя дата на сайте: [{last_date_site}]({last_results_link})
                         ''')
+            
+        if (username == "host"):
+            if (st.button('Обновить данные')):
+                st.write('Начинаем парсинг данных...')
+                asyncio.run(update_data())
+                st.success('Данные успешно сохранены в базу данных!')
+        
+        # Добавление новых участников в базу
+        engine = create_engine('sqlite:///mydatabase.db')
+        df_run, df_org, df_users = dataframes(engine)
 
+        df_all = df_run.merge(df_org, how='outer', on='profile_link')
+        df_users = df_all.merge(df_users, how='left', on='profile_link')
+
+        df_tag, workbook = tags_table()
+
+        df_new = df_users[~df_users['profile_link'].isin(df_tag['profile_link'])]
+        df_new['name_title'] = df_new['name'].str.title()
+
+        st.write(f'''
+                Уникальных id в таблице google: {len(df_tag)}<br>
+                Уникальных id в базе: {len(df_users)}<br>
+                Количество новых участников: {len(df_new)}<br>
+        ''', unsafe_allow_html=True)
+
+        if len(df_users)-len(df_tag) > 0:
+            if st.button("Добавить новичков в таблицу гугл"):
+                workbook.sheet1.add_rows(len(df_users)-len(df_tag))
+                workbook.sheet1.update_acell('A2', f'=Sequence({len(df_users)};1)')
+
+                rows = df_new[['profile_link', 'sex', 'age_group', 'name', 'name_title']].fillna('').values.tolist()
+                workbook.sheet1.update(rows, f'R{len(df_tag)+2}C2:R{len(df_tag)+2+len(rows)}C6')
+                st.rerun()
+
+        
 #####################################################################################################################################################
 # Поиск по имени
 #####################################################################################################################################################
