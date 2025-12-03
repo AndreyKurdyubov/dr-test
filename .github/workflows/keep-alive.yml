@@ -10,7 +10,10 @@ on:
 jobs:
   make-dummy-commit:
     runs-on: ubuntu-latest
-    
+
+    permissions:
+      contents: write  # Права на запись в репозиторий
+      
     steps:
       # Шаг 1: Получить код
       - name: Checkout repository
