@@ -32,7 +32,7 @@ db_name = find_db_files()
 
 # Путь к изображению
 image_path = 'logo.jpg'
-num_runs = 3  # количество загружаемых протоколов
+num_runs = 2  # количество загружаемых протоколов
 
 # Вставка изображения
 st.image(image_path, caption='')
